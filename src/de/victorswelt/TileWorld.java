@@ -15,7 +15,7 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 public class TileWorld extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
-	int width, height, camX, camY, selectedTileX, selectedTileY, oldMouseX, oldMouseY;
+	int width, height, camX, camY, selectedTileX, selectedTileY, oldMouseX, oldMouseY, scaledTileWidth, scaledTileHeight;
 	float scale = 1f;
 	TileGraphicType[][] world;
 	
@@ -28,6 +28,8 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 		super();
 		this.width = width;
 		this.height = height;
+		scaledTileWidth = TileGraphicType.TILE_WIDTH;
+		scaledTileHeight = TileGraphicType.TILE_HEIGHT;
 		
 		world = new TileGraphicType[width][height];
 		for(int x = 0; x<width; x++) {
@@ -64,24 +66,24 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 		Graphics2D g = (Graphics2D) graphics;
 		
 		// paint the scene
-		int tileXoff = camX / TileGraphicType.TILE_WIDTH,
-				tileYoff = camY / TileGraphicType.TILE_HEIGHT,
-				subTileX = camX % TileGraphicType.TILE_WIDTH,
-				subTileY = camY % TileGraphicType.TILE_HEIGHT;
+		int tileXoff = camX / scaledTileWidth,
+				tileYoff = camY / scaledTileHeight,
+				subTileX = camX % scaledTileWidth,
+				subTileY = camY % scaledTileHeight;
 		
 		
-		for(int x = -1; x<=getWidth()/TileGraphicType.TILE_WIDTH; x++) {
-			for(int y = -1; y<=getHeight()/TileGraphicType.TILE_HEIGHT+1; y++) {
+		for(int x = -1; x<=getWidth()/scaledTileWidth; x++) {
+			for(int y = -1; y<=getHeight()/scaledTileHeight+1; y++) {
 				getTileGraphicAt(x + tileXoff, y + tileYoff)
-					.draw(g, x*TileGraphicType.TILE_WIDTH - subTileX, y*TileGraphicType.TILE_HEIGHT - subTileY);
+					.draw(g, x*scaledTileWidth - subTileX, y*scaledTileHeight - subTileY, scaledTileWidth, scaledTileHeight);
 			}
 		}
 		
 		// draw the selection box
 		g.setColor(selectorBoxColor);
-		g.drawRect(selectedTileX*TileGraphicType.TILE_WIDTH - camX, 
-				selectedTileY*TileGraphicType.TILE_HEIGHT - camY, 
-				TileGraphicType.TILE_WIDTH, TileGraphicType.TILE_HEIGHT);
+		g.drawRect(selectedTileX*scaledTileWidth - camX, 
+				selectedTileY*scaledTileHeight - camY, 
+				scaledTileWidth, scaledTileHeight);
 	}
 	
 	public TileGraphicType getTileGraphicAt(int x, int y) {
@@ -105,8 +107,10 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 	public void mouseMoved(MouseEvent e) {
 		
 		// move the selection box
-		selectedTileX = (e.getX() + camX) / TileGraphicType.TILE_WIDTH;
-		selectedTileY = (e.getY() + camY) / TileGraphicType.TILE_HEIGHT;
+		selectedTileX = (e.getX() + camX) / scaledTileWidth;
+		selectedTileY = (e.getY() + camY) / scaledTileHeight;
+		
+		System.out.println(selectedTileX + " " + selectedTileY);
 		
 	}
 
@@ -143,7 +147,10 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		scale += e.getScrollAmount()*0.5;
+		scale += e.getWheelRotation()*0.1;
+		scale = Math.max(scale, 0.2f);
 		
+		scaledTileWidth = (int) Math.max(TileGraphicType.TILE_WIDTH*scale, 1);
+		scaledTileHeight = (int) Math.max(TileGraphicType.TILE_HEIGHT*scale, 1);
 	}
 }

@@ -41,14 +41,14 @@ public enum TileGraphicType {
 		tilemapY = y;
 	}
 	
-	public void draw(Graphics2D g, int x, int y) {
+	public void draw(Graphics2D g, int x, int y, int scaledWidth, int scaledHeight) {
 		int sx = tilemapX*TILE_WIDTH, sy = tilemapY*TILE_HEIGHT;
-		g.drawImage(tilemap, x, y, x+TILE_WIDTH, y+TILE_HEIGHT, sx, sy, sx+TILE_WIDTH, sy+TILE_HEIGHT, null);
+		g.drawImage(tilemap, x, y, x+scaledWidth, y+scaledHeight, sx, sy, sx+TILE_WIDTH, sy+TILE_HEIGHT, null);
 	}
 	
-	public void draw(Graphics2D g, int x, int y, Color xorColor) {
+	public void draw(Graphics2D g, int x, int y, int scaledWidth, int scaledHeight, Color xorColor) {
 		g.setXORMode(xorColor);
-		draw(g, x, y);
+		draw(g, x, y, scaledWidth, scaledHeight);
 		g.setPaintMode();
 	}
 }
