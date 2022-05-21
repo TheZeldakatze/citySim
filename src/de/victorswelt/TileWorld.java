@@ -28,7 +28,7 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 	
 	private Color selectorBoxColor = new Color(100, 100, 10);
 	
-	public TileWorld(CitySimGame csg, int width, int height) {
+	public TileWorld(CitySimGame csg, int width, int height, Timer timer) {
 		this.width = width;
 		this.height = height;
 		game = csg;
@@ -56,7 +56,7 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 		addMouseWheelListener(this);
 		
 		// the redraw timer
-		new Timer().scheduleAtFixedRate(new TimerTask() {
+		timer.scheduleAtFixedRate(new TimerTask() {
 			
 			@Override
 			public void run() {

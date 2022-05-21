@@ -4,11 +4,14 @@ import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JDesktopPane;
 
 public class CitySimGame extends JDesktopPane {
 	private static final long serialVersionUID = 1L;
+	private static final int GAME_TICK_DELAY = 20;
 	
 	CitySim citySim;
 	TileWorld tileWorld;
@@ -19,10 +22,14 @@ public class CitySimGame extends JDesktopPane {
 	
 	Tool currentTool;
 	
+	Timer tickTimer;
+	
 	public CitySimGame(CitySim cs, int width, int height) {
 		citySim = cs;
 		
-		tileWorld = new TileWorld(this, width, height);
+		tickTimer = new Timer();
+		
+		tileWorld = new TileWorld(this, width, height, tickTimer);
 		toolbar = new GameToolbar(this);
 		
 		
@@ -43,7 +50,21 @@ public class CitySimGame extends JDesktopPane {
 		});
 		
 		setCursor(GameIcon.inspectCursor);
+		
+		// start the game tick system
+		tickTimer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				gameTick();
+			}
+		}, 0, GAME_TICK_DELAY);
 	}
+	
+	private void gameTick() {
+		
+	}
+	
 	
 	public ArrayList<Building> getBuildings() {
 		return buildingList;
@@ -67,6 +88,6 @@ public class CitySimGame extends JDesktopPane {
 	}
 	
 	public void destroy() {
-		
+		tickTimer.cancel();
 	}
 }

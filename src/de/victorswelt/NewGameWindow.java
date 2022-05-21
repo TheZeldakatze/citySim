@@ -43,7 +43,7 @@ public class NewGameWindow extends JInternalFrame {
 				int w = ((Integer) width.getValue()),
 						h = ((Integer) height.getValue());
 				citySim.setGame(new CitySimGame(citySim, w, h));
-				//destroy();
+				destroy();
 			}
 		});
 	}
