@@ -15,19 +15,23 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 public class TileWorld extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
+	private static final long serialVersionUID = 1L;
+	
 	int width, height, camX, camY, selectedTileX, selectedTileY, oldMouseX, oldMouseY, scaledTileWidth, scaledTileHeight;
 	float scale = 1f;
 	TileGraphicType[][] world;
+	BuildingBlueprintType currentBlueprint;
+	
+	CitySimGame game;
 	
 	public boolean needRedraw;
 	
-	private Color redXORmask = new Color(255, 0, 0),
-			selectorBoxColor = new Color(100, 100, 10);
+	private Color selectorBoxColor = new Color(100, 100, 10);
 	
-	public TileWorld(int width, int height) {
-		super();
+	public TileWorld(CitySimGame csg, int width, int height) {
 		this.width = width;
 		this.height = height;
+		game = csg;
 		scaledTileWidth = TileGraphicType.TILE_WIDTH;
 		scaledTileHeight = TileGraphicType.TILE_HEIGHT;
 		
@@ -37,6 +41,8 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 				world[x][y] = TileGraphicType.GRASS_FULL;
 			}
 		}
+		
+		setBackground(Color.RED);
 		
 		world[3][3] = TileGraphicType.HOUSE_SMALL_00;
 		world[4][3] = TileGraphicType.HOUSE_SMALL_10;
@@ -72,10 +78,28 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 				subTileY = camY % scaledTileHeight;
 		
 		
-		for(int x = -1; x<=getWidth()/scaledTileWidth; x++) {
+		for(int x = -1; x<=getWidth()/scaledTileWidth+1; x++) {
 			for(int y = -1; y<=getHeight()/scaledTileHeight+1; y++) {
 				getTileGraphicAt(x + tileXoff, y + tileYoff)
 					.draw(g, x*scaledTileWidth - subTileX, y*scaledTileHeight - subTileY, scaledTileWidth, scaledTileHeight);
+			}
+		}
+		
+		int selectPixelOffX = selectedTileX*scaledTileWidth - camX,
+			selectPixelOffY = selectedTileY*scaledTileHeight - camY;
+		
+		if(currentBlueprint != null) {
+			boolean canBeBuilt = currentBlueprint.canBuildAt(this, selectedTileX, selectedTileY);
+			for(int x = 0; x < currentBlueprint.tiles[0].length; x++) {
+				for(int y = 0; y < currentBlueprint.tiles.length; y++) {
+					if(canBeBuilt)
+						currentBlueprint.tiles[x][y]
+								.drawRed(g, selectPixelOffX + x*scaledTileWidth, selectPixelOffY + y*scaledTileHeight, scaledTileWidth, scaledTileHeight);
+					else
+						currentBlueprint.tiles[x][y]
+								.drawBlue(g, selectPixelOffX + x*scaledTileWidth, selectPixelOffY + y*scaledTileHeight, scaledTileWidth, scaledTileHeight);
+					
+				}
 			}
 		}
 		
@@ -90,6 +114,28 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 		if(x<0 || y<0 || x>=width || y>=height)
 			return TileGraphicType.VOID;
 		return world[x][y];
+	}
+	
+	
+
+	public int getTileWidth() {
+		return width;
+	}
+
+	public int getTileHeight() {
+		return height;
+	}
+
+	public int getSelectedTileX() {
+		return selectedTileX;
+	}
+
+	public int getSelectedTileY() {
+		return selectedTileY;
+	}
+
+	public void setCurrentBlueprint(BuildingBlueprintType currentBlueprint) {
+		this.currentBlueprint = currentBlueprint;
 	}
 
 	@Override
@@ -110,8 +156,6 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 		selectedTileX = (e.getX() + camX) / scaledTileWidth;
 		selectedTileY = (e.getY() + camY) / scaledTileHeight;
 		
-		System.out.println(selectedTileX + " " + selectedTileY);
-		
 	}
 
 	@Override
@@ -123,11 +167,9 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 	public void mousePressed(MouseEvent e) {
 		oldMouseX = e.getX();
 		oldMouseY = e.getY();
-		System.out.println("pressed");
-		if(e.getButton() == MouseEvent.BUTTON1)
-			BuildingBlueprintType.SMALL_HOUSE.buildAt(this, selectedTileX, selectedTileY);
-		if(e.getButton() == MouseEvent.BUTTON2)
-			BuildingBlueprintType.FARM.buildAt(this, selectedTileX, selectedTileY);
+		
+		if(e.getButton() != MouseEvent.BUTTON3)
+			game.mouseClickCallback(selectedTileX, selectedTileY);
 	}
 
 	@Override
@@ -147,7 +189,7 @@ public class TileWorld extends JPanel implements MouseListener, MouseMotionListe
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		scale += e.getWheelRotation()*0.1;
+		scale += e.getWheelRotation()*(scale*0.1);
 		scale = Math.max(scale, 0.2f);
 		
 		scaledTileWidth = (int) Math.max(TileGraphicType.TILE_WIDTH*scale, 1);

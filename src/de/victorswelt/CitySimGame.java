@@ -13,24 +13,52 @@ public class CitySimGame extends JDesktopPane {
 	CitySim citySim;
 	TileWorld tileWorld;
 	
+	GameToolbar toolbar;
+	
 	ArrayList<Building> buildingList;
+	
+	Tool currentTool;
 	
 	public CitySimGame(CitySim cs, int width, int height) {
 		citySim = cs;
-		tileWorld = new TileWorld(width, height);
 		
+		tileWorld = new TileWorld(this, width, height);
+		toolbar = new GameToolbar(this);
+		
+		
+		add(toolbar);
 		add(tileWorld);
+		
+		toolbar.repaint();
+		
+		currentTool = new SelectorTool(this, tileWorld);
 		
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				tileWorld.setSize(getWidth(), getHeight());
+				toolbar.setSize(toolbar.getPreferredSize());
+				toolbar.setLocation(getWidth()/2 - toolbar.getWidth()/2, 0);
+				tileWorld.setBounds(0, 0, getWidth(), getHeight());
 			}
 		});
+		
+		setCursor(GameIcon.inspectCursor);
 	}
 	
 	public ArrayList<Building> getBuildings() {
 		return buildingList;
+	}
+	
+	public void addBuilding(Building building) {
+		buildingList.add(building);
+	}
+	
+	public void setTool(Tool t) {
+		currentTool = t;
+	}
+	
+	public void mouseClickCallback(int tileX, int tileY) {
+		currentTool.clickCallback();
 	}
 	
 	@Override

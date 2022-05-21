@@ -25,4 +25,28 @@ public enum BuildingBlueprintType {
 		
 		return true;
 	}
+	
+	public boolean canBuildAt(TileWorld tw, int xoff, int yoff) {
+		if(xoff<0 || yoff<0 || xoff + tiles[0].length >= tw.width || yoff + tiles.length >= tw.height)
+			return false;
+		
+		for(int x = 0; x < tiles[0].length; x++) {
+			for(int y = 0; y < tiles.length; y++) {
+				
+				// TODO include every buildable tile
+				if(tw.world[x+xoff][y+yoff] != TileGraphicType.GRASS_FULL)
+					return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	public int getWidth() {
+		return tiles[0].length;
+	}
+	
+	public int getHeight() {
+		return tiles.length;
+	}
 }
